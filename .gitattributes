@@ -1,2 +1,104 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+hc <- read.csv("C:/Users/hedaa/Desktop/RR/HospitalCosts.csv")
+View(hc)
+
+dim(hc)
+str(hc)
+summary(hc)
+
+hc <- na.omit(hc)
+
+colSums(is.na(hc))
+summary(hc)
+
+hc$RACE <- as.factor(hc$RACE)
+hc$FEMALE <- as.factor(hc$FEMALE)
+unique(hc$APRDRG)
+
+hc$APRDRG_Factor <- as.factor(hc$APRDRG)
+
+str(hc)
+
+#To record the patient statistics, the agency wants to find the age category of people who frequent the hospital
+#and has the maximum expenditure.
+
+hist(hc$AGE)
+summary(as.factor(hc$AGE))
+
+#0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17 
+#306  10   1   3   2   2   2   3   2   2   4   8  15  18  25  29  29  38 
+
+#Result: From the histogram, we can say that age=0 has the maximum frequency to the hospotal as the frequency is >300.
+
+max(aggregate(hc$TOTCHG ~ hc$AGE, FUN = sum, data=hc))
+ 
+datfram <- aggregate(TOTCHG ~ AGE, FUN = sum, data = hc)
+datfram
+datfram[(datfram$TOTCHG == max(datfram$TOTCHG)),]
+
+#AGE TOTCHG
+#1   0 678118
+
+#Result: Age group of 0 has the maximum hospital costs with 678118.
+
+#Ques 2)
+#In order of severity of the diagnosis and treatments and to find out the expensive treatments, 
+#the agency wants to find the diagnosis-related group that has maximum hospitalization and expenditure.
+
+which.max(summary(hc$APRDRG_Factor)) 
+
+df <- aggregate(TOTCHG ~ APRDRG_Factor, FUN = sum, data = hc)
+df
+
+df[which.max(summary(hc$APRDRG_Factor)),]
+
+
+# APRDRG_Factor TOTCHG
+#44           640 437978
+#Result: APRDRG 640 has the max hospitalization with expenditure 437978.
+
+#Ques 3)
+#To make sure that there is no malpractice, the agency needs to analyze 
+#if the race of the patient is related to the hospitalization costs.
+
+
+# Ho: Races had no an impact on the costs
+# H1: Races had an impact on the costs
+
+av1 <- aov(hc$TOTCHG ~ hc$RACE, data=hc)
+summary(av1)
+
+pvalue = 0.943
+alpha=0.05 
+pvalue<alpha
+
+#Result: Since, p value is greater than alpha value , hence we reject the null hypothesis and 
+#we can say that race had an impact on the costs.
+
+#Ques 4)
+#To properly utilize the costs, the agency has to analyze the severity of the 
+#hospital costs by age and gender for the proper allocation of resources.
+
+av2=aov(hc$TOTCHG ~ as.factor(hc$AGE) + hc$FEMALE, data=hc)
+summary(av2)
+
+#Result: Since, the pvalue for AGE is less than alpha, we can say that age doesn't affect the csot. But, the pvalue for 
+#gender is greater than alpha, hence we can say that gender affects the cost.
+
+#Ques 5)
+#Since the length of stay is the crucial factor for inpatients, 
+#the agency wants to find if the length of stay can be predicted from age, gender, and race.
+
+#Ho: LOS cannot be predicted from age, gender and race.
+#H1: LOS can be predicted from age, gender and race.
+
+m1 <- lm(hc$LOS ~ hc$AGE + hc$FEMALE + hc$RACE, data=hc)
+summary(m1)
+ 
+#Result: Since, the p value of age, gender and race is greater than p value we can say that LOS can be predicted from these 3 factors.
+
+#Ques 6)
+#To perform a complete analysis, the agency wants to find the variable that mainly affects hospital costs.
+
+m2 <- lm(hc$TOTCHG ~ ., data=hc)
+summary(m2)
+#Result: Variables that affects hospital costs are gender and race. 
